@@ -80,4 +80,7 @@
 		</plugins>
 	</build>
 
+	<modules>
+		<module>dubbo-pro-common</module>
+	</modules>
 </project>
