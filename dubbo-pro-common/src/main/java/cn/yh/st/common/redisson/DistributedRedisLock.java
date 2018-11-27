@@ -5,6 +5,13 @@ import java.util.concurrent.TimeUnit;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 
+/**
+ * 分布式锁简单实现
+ * 
+ * @author yuhang
+ * @Date 2018年11月27日
+ * @desc
+ */
 public class DistributedRedisLock {
 	private static Redisson redisson = RedisManager.getRedisson();
 	private static final String LOCK_TITLE = "redisLock_";
