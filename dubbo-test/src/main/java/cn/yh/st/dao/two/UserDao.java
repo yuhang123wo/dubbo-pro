@@ -1,4 +1,4 @@
-package cn.yh.st.dao;
+package cn.yh.st.dao.two;
 
 import cn.yh.st.domain.User;
 import tk.mybatis.mapper.common.Mapper;
