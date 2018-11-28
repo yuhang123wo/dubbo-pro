@@ -23,89 +23,149 @@
 	<context:property-placeholder location="classpath:conf.properties"
 		ignore-unresolvable="true" />
 
-	<bean id="dataSource" class="com.alibaba.druid.pool.xa.DruidXADataSource" init-method="init"
-		destroy-method="close">
-		<property name="url" value="${jdbc.one.url}" />
-		<property name="username" value="${jdbc.one.username}" />
-		<property name="password" value="${jdbc.one.password}" />
-		<property name="maxActive" value="10" />
-
-		<property name="filters">
-			<value>stat</value>
+	<bean id="abstractXADataSource" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init"
+		destroy-method="close" abstract="true">
+		<property name="xaDataSourceClassName" value="${jdbc.xaDataSourceClassName}" />  <!-- SQLErrorCodes loaded: [DB2, Derby, H2, HSQL, Informix, MS-SQL, MySQL, Oracle, PostgreSQL, Sybase, 
+			Hana] -->
+		<property name="poolSize" value="10" />
+		<property name="minPoolSize" value="10" />
+		<property name="maxPoolSize" value="30" />
+		<property name="borrowConnectionTimeout" value="60" />
+		<property name="reapTimeout" value="20" />
+		<property name="maxIdleTime" value="60" />
+		<property name="maintenanceInterval" value="60" />
+		<property name="loginTimeout" value="60" />
+		<property name="testQuery" value="${validationQuery}" />
+	</bean>
+	<bean id="dataSourceOne" parent="abstractXADataSource">
+		<property name="uniqueResourceName" value="masterDB" />
+		<property name="xaProperties">
+			<props>
+				<prop key="driverClassName">${jdbc.driver}</prop>
+				<prop key="url">${jdbc.one.url}</prop>
+				<prop key="password">${jdbc.one.password}</prop>
+				<!-- <prop key="user">${jdbc.username}</prop> --> <!-- mysql -->
+				<prop key="username">${jdbc.one.username}</prop>   <!-- durid -->
+				<prop key="initialSize">0</prop>
+				<prop key="maxActive">20</prop> <!-- 若不配置则代码执行"{dataSource-1} inited"此处停止 -->
+				<prop key="minIdle">0</prop>
+				<prop key="maxWait">60000</prop>
+				<prop key="validationQuery">${validationQuery}</prop>
+				<prop key="testOnBorrow">false</prop>
+				<prop key="testOnReturn">false</prop>
+				<prop key="testWhileIdle">true</prop>
+				<prop key="removeAbandoned">true</prop>
+				<prop key="removeAbandonedTimeout">1800</prop>
+				<prop key="logAbandoned">true</prop>
+				<prop key="filters">mergeStat</prop>
+			</props>
 		</property>
-		<property name="initialSize">
-			<value>1</value>
-		</property>
-		<property name="maxWait">
-			<value>60000</value>
-		</property>
-		<property name="minIdle">
-			<value>1</value>
-		</property>
-
-		<property name="timeBetweenEvictionRunsMillis">
-			<value>60000</value>
-		</property>
-		<property name="minEvictableIdleTimeMillis">
-			<value>300000</value>
-		</property>
-
-		<property name="validationQuery">
-			<value>SELECT 'x'</value>
-		</property>
-		<property name="testWhileIdle">
-			<value>true</value>
-		</property>
-		<property name="testOnBorrow">
-			<value>false</value>
-		</property>
-		<property name="testOnReturn">
-			<value>false</value>
-		</property>
-
-		<property name="poolPreparedStatements">
-			<value>true</value>
-		</property>
-		<property name="maxOpenPreparedStatements">
-			<value>20</value>
+	</bean>
+	<bean id="dataSourceTwo" parent="abstractXADataSource">
+		<property name="uniqueResourceName" value="slaveDB" />
+		<property name="xaProperties">
+			<props>
+				<prop key="driverClassName">${jdbc.driver}</prop>
+				<prop key="url">${jdbc.two.url}</prop>
+				<prop key="password">${jdbc.two.password}</prop>
+				<!-- <prop key="user">${jdbc.username}</prop> -->
+				<prop key="username">${jdbc.two.username}</prop>
+				<prop key="initialSize">0</prop>
+				<prop key="maxActive">20</prop>
+				<prop key="minIdle">0</prop>
+				<prop key="maxWait">60000</prop>
+				<prop key="validationQuery">${validationQuery}</prop>
+				<prop key="testOnBorrow">false</prop>
+				<prop key="testOnReturn">false</prop>
+				<prop key="testWhileIdle">true</prop>
+				<prop key="removeAbandoned">true</prop>
+				<prop key="removeAbandonedTimeout">1800</prop>
+				<prop key="logAbandoned">true</prop>
+				<prop key="filters">mergeStat</prop>
+			</props>
 		</property>
 	</bean>
 
-	<bean id="atomikosDataSource" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init"
-		destroy-method="close">
-		<property name="uniqueResourceName" value="cdc2" />
-		<property name="xaDataSource" ref="dataSource" />
-	</bean>
-
-	<bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-		<property name="dataSource" ref="atomikosDataSource" />
-		<property name="mapperLocations" value="classpath*:mybatis/one/*.xml" />
-	</bean>
-
-
-
-	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="cn.yh.st.dao.one" />
-		<property name="sqlSessionFactoryBeanName" value="sessionFactory" />
-	</bean>
-
-	<!-- <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"> 
-		<property name="dataSource" ref="dataSource"/> </bean> -->
-
+	<!--配置分布式事务 -->
 	<bean id="atomikosTransactionManager" class="com.atomikos.icatch.jta.UserTransactionManager"
 		init-method="init" destroy-method="close">
-		<description>UserTransactionManager</description>
 		<property name="forceShutdown" value="false" />
 	</bean>
 
 	<bean id="atomikosUserTransaction" class="com.atomikos.icatch.jta.UserTransactionImp">
-		<property name="transactionTimeout" value="300" />
+		<property name="transactionTimeout" value="300000" />
 	</bean>
 
-	<!-- <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/> -->
-	<bean id="JtaTransactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
-		<property name="transactionManager" ref="atomikosTransactionManager" />
-		<property name="userTransaction" ref="atomikosUserTransaction" />
+	<!--JTA事务管理器 -->
+	<bean id="springTransactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+		<property name="transactionManager">
+			<ref bean="atomikosTransactionManager" />
+		</property>
+		<property name="userTransaction">
+			<ref bean="atomikosUserTransaction" />
+		</property>
+		<property name="allowCustomIsolationLevels" value="true" />
 	</bean>
-	<tx:annotation-driven />
-                                                                                       </beans>
+
+	<aop:aspectj-autoproxy />
+	<!--声明式事务 -->
+	<aop:config proxy-target-class="true">
+		<aop:advisor advice-ref="txAdvice" pointcut="execution(* cn.yh.st.service.impl.*.*(..))" />
+	</aop:config>
+
+	<tx:advice id="txAdvice" transaction-manager="springTransactionManager">
+		<tx:attributes>
+			<tx:method name="create*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="valid*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="do*" propagation="REQUIRED" />
+			<tx:method name="write*" propagation="REQUIRED" />
+			<tx:method name="del*" propagation="REQUIRED" />
+			<tx:method name="process*" propagation="REQUIRED" />
+			<tx:method name="cancel*" propagation="REQUIRED" />
+			<tx:method name="edit*" propagation="REQUIRED" />
+			<tx:method name="roll*" propagation="REQUIRED" />
+			<tx:method name="remove*" propagation="REQUIRED" />
+			<tx:method name="get*" propagation="SUPPORTS" />
+			<tx:method name="query*" propagation="SUPPORTS" />
+			<tx:method name="find*" propagation="SUPPORTS" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!--mybatis的相关配置 -->
+	<bean id="sqlSessionFactoryOne" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSourceOne" />
+		<property name="configLocation" value="classpath:/mybatis/mybatis-config.xml" />
+		<property name="typeAliasesPackage" value="cn.yh.st.domain" />
+		<property name="mapperLocations">
+			<list>
+				<value>classpath:/mybatis/one/*Mapper.xml</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="sqlSessionFactoryTwo" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSourceTwo" />
+		<property name="configLocation" value="classpath:/mybatis/mybatis-config.xml" />
+		<property name="typeAliasesPackage" value="cn.yh.st.domain" />
+		<property name="mapperLocations">
+			<list>
+				<value>classpath:/mybatis/two/*Mapper.xml</value>
+			</list>
+		</property>
+	</bean>
+
+	<!--配置mybatis映射文件自动扫描 -->
+	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="cn.yh.st.dao.one" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryOne" />
+	</bean>
+
+	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="cn.yh.st.dao.two" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryTwo" />
+	</bean>
+</beans>
