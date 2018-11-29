@@ -259,5 +259,8 @@
 	<modules>
 		<module>dubbo-pro-common</module>
 		<module>dubbo-test</module>
+		<module>dubbo-pro-api</module>
+		<module>dubbo-pro-service</module>
+		<module>dubbo-pro-web</module>
 	</modules>
 </project>

@@ -38,13 +38,13 @@
 		<property name="testQuery" value="${validationQuery}" />
 	</bean>
 	<bean id="dataSourceOne" parent="abstractXADataSource">
+		  <!-- uniqueResourceName表示唯一资源名，如有多个数据源不可重复； -->  
 		<property name="uniqueResourceName" value="masterDB" />
 		<property name="xaProperties">
 			<props>
 				<prop key="driverClassName">${jdbc.driver}</prop>
 				<prop key="url">${jdbc.one.url}</prop>
 				<prop key="password">${jdbc.one.password}</prop>
-				<!-- <prop key="user">${jdbc.username}</prop> --> <!-- mysql -->
 				<prop key="username">${jdbc.one.username}</prop>   <!-- durid -->
 				<prop key="initialSize">0</prop>
 				<prop key="maxActive">20</prop> <!-- 若不配置则代码执行"{dataSource-1} inited"此处停止 -->
@@ -86,7 +86,7 @@
 		</property>
 	</bean>
 
-	<!--配置分布式事务 -->
+	<!-- 配置atomikos事务管理器 -->  
 	<bean id="atomikosTransactionManager" class="com.atomikos.icatch.jta.UserTransactionManager"
 		init-method="init" destroy-method="close">
 		<property name="forceShutdown" value="false" />
@@ -158,7 +158,7 @@
 		</property>
 	</bean>
 
-	<!--配置mybatis映射文件自动扫描 -->
+	<!--配置mybatis映射文件自动扫描  此处用的通用mapper-->
 	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="cn.yh.st.dao.one" />
 		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryOne" />
