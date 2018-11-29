@@ -13,12 +13,7 @@
          http://www.springframework.org/schema/task    
         http://www.springframework.org/schema/task/spring-task-4.0.xsd">
 	<context:annotation-config />
-	<context:component-scan base-package="cn.yh.st">
-		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
-		<context:exclude-filter type="annotation"
-			expression="org.springframework.web.bind.annotation.ControllerAdvice" />
-	</context:component-scan>
-
+	<context:component-scan base-package="cn.yh.st"/>
 
 	<context:property-placeholder location="classpath:conf.properties"
 		ignore-unresolvable="true" />
@@ -48,30 +43,6 @@
 				<prop key="username">${jdbc.one.username}</prop>   <!-- durid -->
 				<prop key="initialSize">0</prop>
 				<prop key="maxActive">20</prop> <!-- 若不配置则代码执行"{dataSource-1} inited"此处停止 -->
-				<prop key="minIdle">0</prop>
-				<prop key="maxWait">60000</prop>
-				<prop key="validationQuery">${validationQuery}</prop>
-				<prop key="testOnBorrow">false</prop>
-				<prop key="testOnReturn">false</prop>
-				<prop key="testWhileIdle">true</prop>
-				<prop key="removeAbandoned">true</prop>
-				<prop key="removeAbandonedTimeout">1800</prop>
-				<prop key="logAbandoned">true</prop>
-				<prop key="filters">mergeStat</prop>
-			</props>
-		</property>
-	</bean>
-	<bean id="dataSourceTwo" parent="abstractXADataSource">
-		<property name="uniqueResourceName" value="slaveDB" />
-		<property name="xaProperties">
-			<props>
-				<prop key="driverClassName">${jdbc.driver}</prop>
-				<prop key="url">${jdbc.two.url}</prop>
-				<prop key="password">${jdbc.two.password}</prop>
-				<!-- <prop key="user">${jdbc.username}</prop> -->
-				<prop key="username">${jdbc.two.username}</prop>
-				<prop key="initialSize">0</prop>
-				<prop key="maxActive">20</prop>
 				<prop key="minIdle">0</prop>
 				<prop key="maxWait">60000</prop>
 				<prop key="validationQuery">${validationQuery}</prop>
@@ -142,30 +113,15 @@
 		<property name="typeAliasesPackage" value="cn.yh.st.domain" />
 		<property name="mapperLocations">
 			<list>
-				<value>classpath:/mybatis/one/*Mapper.xml</value>
-			</list>
-		</property>
-	</bean>
-
-	<bean id="sqlSessionFactoryTwo" class="org.mybatis.spring.SqlSessionFactoryBean">
-		<property name="dataSource" ref="dataSourceTwo" />
-		<property name="configLocation" value="classpath:/mybatis/mybatis-config.xml" />
-		<property name="typeAliasesPackage" value="cn.yh.st.domain" />
-		<property name="mapperLocations">
-			<list>
-				<value>classpath:/mybatis/two/*Mapper.xml</value>
+				<value>classpath:/mybatis/*Mapper.xml</value>
 			</list>
 		</property>
 	</bean>
 
 	<!--配置mybatis映射文件自动扫描  此处用的通用mapper-->
 	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="cn.yh.st.dao.one" />
+		<property name="basePackage" value="cn.yh.st.dubbo.dao" />
 		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryOne" />
 	</bean>
-
-	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="cn.yh.st.dao.two" />
-		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryTwo" />
-	</bean>
+	<import resource="dubbo-provider.xml"/>
 </beans>

@@ -5,10 +5,10 @@ import org.springframework.stereotype.Service;
 
 import cn.yh.st.dubbo.dao.UserDao;
 import cn.yh.st.dubbo.domain.User;
-import cn.yh.st.dubbo.facade.IUserService;
+import cn.yh.st.dubbo.facade.UserService;
 
-@Service
-public class UserServiceImpl implements IUserService {
+@Service("userService")
+public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserDao userDao;
