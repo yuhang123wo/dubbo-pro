@@ -15,6 +15,12 @@
 			<artifactId>redisson</artifactId>
 			<version>3.9.0</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.mengyun</groupId>
+			<artifactId>tcc-transaction-spring</artifactId>
+			<version>1.2.4.23</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/tcc-transaction-spring-1.2.4.23.jar</systemPath>
+		</dependency>
 	</dependencies>
 </project>
