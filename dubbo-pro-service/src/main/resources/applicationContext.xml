@@ -124,4 +124,5 @@
 		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryOne" />
 	</bean>
 	<import resource="dubbo-provider.xml"/>
+	<import resource="classpath:tcc-transaction.xml" />
 </beans>
