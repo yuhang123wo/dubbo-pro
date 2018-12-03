@@ -253,6 +253,11 @@
 			<artifactId>zkclient</artifactId>
 			<version>0.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.pagehelper</groupId>
+			<artifactId>pagehelper</artifactId>
+			<version>3.7.5</version>
+		</dependency>
 	</dependencies>
 
 	<!-- 设定主仓库，按设定顺序进行查找。 -->
@@ -297,5 +302,6 @@
 		<module>dubbo-pro-api</module>
 		<module>dubbo-pro-service</module>
 		<module>dubbo-pro-web</module>
+		<module>t-manager</module>
 	</modules>
 </project>
