@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import tk.mybatis.mapper.entity.Example;
+import tk.mybatis.mapper.entity.Example.Criteria;
 import cn.yh.st.dubbo.dao.AssetCardDao;
 import cn.yh.st.dubbo.domain.AssetCardModel;
 import cn.yh.st.dubbo.facade.AssetCardService;
@@ -14,7 +16,6 @@ public class AssetCardServiceImpl implements AssetCardService {
 
 	@Override
 	public int testSaveAssetCard(AssetCardModel model) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
