@@ -9,7 +9,11 @@
 	<artifactId>t-search</artifactId>
 
 	<dependencies>
-
+		<dependency>
+			<groupId>cn.yh.st</groupId>
+			<artifactId>dubbo-pro-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch -->
 		<dependency>
 			<groupId>org.elasticsearch</groupId>

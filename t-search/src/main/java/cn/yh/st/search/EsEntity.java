@@ -4,7 +4,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class EsEntity {
+@SuppressWarnings("serial")
+public class EsEntity implements java.io.Serializable {
 
 	protected long id;
 

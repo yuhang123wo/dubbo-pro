@@ -4,6 +4,7 @@ import java.util.Date;
 
 public class UserEsVo extends EsEntity {
 
+	private static final long serialVersionUID = 9160352205709589175L;
 	private String userName;
 	private String address;
 	private int age;

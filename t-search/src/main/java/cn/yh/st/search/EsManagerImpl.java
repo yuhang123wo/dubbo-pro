@@ -20,20 +20,28 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import cn.yh.st.common.util.ReflectionHelper;
+
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.pagehelper.PageHelper;
 
-public class EsManagerImpl<T extends EsEntity> implements IEsManager<T> {
+public abstract class EsManagerImpl<T extends EsEntity> implements IEsManager<T> {
 
-	/**
-	 * TCP连接客户端
-	 */
+	protected Class<T> clazz;
 	private TransportClient client;
 
 	public EsManagerImpl() {
+		clazz = ReflectionHelper.getClassGenricType(getClass());
 		this.client = EsHandler.getClient();
 	}
+
+	/**
+	 * 所引名
+	 * 
+	 * @return String
+	 */
+	public abstract String getIndexName();
 
 	/**
 	 * 保存对象
@@ -43,11 +51,11 @@ public class EsManagerImpl<T extends EsEntity> implements IEsManager<T> {
 	 * @throws JsonProcessingException
 	 */
 	@Override
-	public boolean save(String indexName, T t) throws JsonProcessingException {
-		EsHandler.mapping(indexName, t);
+	public boolean save(T t) throws JsonProcessingException {
+		EsHandler.mapping(getIndexName(), t);
 		String className = t.getClass().getSimpleName().toLowerCase();
 		IndexResponse response = client
-				.prepareIndex(indexName, className, String.valueOf(t.getId()))
+				.prepareIndex(getIndexName(), className, String.valueOf(t.getId()))
 				.setSource(changeJsonToMap(t)).get(new TimeValue(1, TimeUnit.MINUTES));
 		return response.getResult() == Result.CREATED;
 	}
@@ -66,10 +74,10 @@ public class EsManagerImpl<T extends EsEntity> implements IEsManager<T> {
 	 * @return
 	 */
 	@Override
-	public boolean update(String indexName, T t) {
+	public boolean update(T t) {
 		String className = t.getClass().getSimpleName().toLowerCase();
 		UpdateResponse response = client
-				.prepareUpdate(indexName, className, String.valueOf(t.getId()))
+				.prepareUpdate(getIndexName(), className, String.valueOf(t.getId()))
 				.setDoc(changeJsonToMap(t)).get();
 		return response.getResult() == Result.UPDATED;
 	}
@@ -82,27 +90,27 @@ public class EsManagerImpl<T extends EsEntity> implements IEsManager<T> {
 	 * @return
 	 */
 	@Override
-	public boolean delete(String indexName, String unid, String type) {
-		DeleteResponse response = client.prepareDelete(indexName, type, unid).get();
+	public boolean delete(String unid) {
+		DeleteResponse response = client.prepareDelete(getIndexName(),
+				clazz.getSimpleName().toLowerCase(), unid).get();
 		return response.getResult() == Result.DELETED;
 	}
 
 	@Override
-	public T get(String unid, String indexName, Class<T> beanClass) {
-		GetResponse response = client.prepareGet(indexName,
-				beanClass.getSimpleName().toLowerCase(), unid).get();
+	public T get(String unid) {
+		GetResponse response = client.prepareGet(getIndexName(),
+				clazz.getSimpleName().toLowerCase(), unid).get();
 		String jsonStr = response.getSourceAsString();
 		JSONObject json = JSONObject.parseObject(jsonStr);
-		T bean = (T) JSONObject.toJavaObject(json, beanClass);
+		T bean = (T) JSONObject.toJavaObject(json, clazz);
 		return bean;
 	}
 
 	@Override
-	public Page<T> getList(String indexName, Map<String, Object> map, Class<T> beanClass,
-			int pageNo, int pageSize) {
-		SearchRequestBuilder builder = client.prepareSearch(indexName)
-				.setTypes(beanClass.getSimpleName().toLowerCase())
-				.setSearchType(SearchType.DEFAULT);
+	public Page<T> getList(Map<String, Object> map, int pageNo, int pageSize) {
+		System.out.println(clazz);
+		SearchRequestBuilder builder = client.prepareSearch(getIndexName())
+				.setTypes(clazz.getSimpleName().toLowerCase()).setSearchType(SearchType.DEFAULT);
 		PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
 		PageHelper.startPage(pageNo, pageSize);
 		SearchResponse response = builder.setFrom(pageNo * pageSize).setSize(pageSize)
@@ -112,9 +120,8 @@ public class EsManagerImpl<T extends EsEntity> implements IEsManager<T> {
 		List<T> list = new ArrayList<>();
 		for (int i = 0; i < hits.getHits().length; i++) {
 			String jsonStr = hits.getHits()[i].getSourceAsString();
-			System.out.println(jsonStr);
 			JSONObject json = JSONObject.parseObject(jsonStr);
-			T bean = (T) JSONObject.toJavaObject(json, beanClass);
+			T bean = (T) JSONObject.toJavaObject(json, clazz);
 			list.add(bean);
 		}
 		return new PageImpl<>(list, pageRequest, total);

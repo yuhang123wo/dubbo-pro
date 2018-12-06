@@ -1,38 +1,13 @@
 package cn.yh.st.search;
 
-import java.net.InetAddress;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.commons.collections.map.HashedMap;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.get.MultiGetItemResponse;
-import org.elasticsearch.action.get.MultiGetResponse;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.MultiSearchResponse;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.cli.UserException;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.reindex.BulkByScrollResponse;
-import org.elasticsearch.index.reindex.DeleteByQueryAction;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
-import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
-import com.alibaba.fastjson.JSONObject;
+import cn.yh.st.common.util.ReflectionHelper;
+import cn.yh.st.search.user.UserEsVoService;
+import cn.yh.st.search.user.UserEsVoServiceImpl;
 
 public class EsDemo {
 
@@ -89,7 +64,7 @@ public class EsDemo {
 		// String type = u.getClass().getSimpleName().toLowerCase();
 		// System.out.println(type);
 
-		IEsManager<UserEsVo> iter = new EsManagerImpl<UserEsVo>();
+		UserEsVoService iter = new UserEsVoServiceImpl();
 		// UserEsVo es = new UserEsVo(3, "mingtang", "湖北s", 1, new Date());
 		// System.out.println(iter.save("users", es));
 		// UserEsVo ess = new UserEsVo(3, "mingtang", "湖北ss", 1, new Date());
@@ -107,12 +82,18 @@ public class EsDemo {
 		//
 		// System.out.println(queryStr);
 
-		System.out.println(iter.getList("users", null, UserEsVo.class, 1, 1).getContent().get(0));
+		System.out.println(iter.getList(null, 1, 1).getContent().get(0));
+
 		//
 		//
 		// JSONObject queryObj = JSONObject.parseObject(queryStr);
 		// JSONObject likeObj = queryObj.getJSONObject("");
 
+	}
+
+	public void test() {
+		Class x = ReflectionHelper.getClassGenricType(this.getClass().getDeclaringClass());
+		System.out.println(x.getSimpleName());
 	}
 
 	public static XContentBuilder createJson4() throws Exception {

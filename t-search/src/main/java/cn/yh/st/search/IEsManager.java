@@ -5,7 +5,6 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.github.pagehelper.PageInfo;
 
 public interface IEsManager<T extends EsEntity> {
 	/**
@@ -14,7 +13,7 @@ public interface IEsManager<T extends EsEntity> {
 	 * @param obj
 	 * @return
 	 */
-	boolean save(String indexName, T t) throws JsonProcessingException;
+	boolean save(T t) throws JsonProcessingException;
 
 	/**
 	 * 更新
@@ -22,7 +21,7 @@ public interface IEsManager<T extends EsEntity> {
 	 * @param obj
 	 * @return
 	 */
-	boolean update(String indexName, T t);
+	boolean update(T t);
 
 	/**
 	 * 删除
@@ -31,7 +30,7 @@ public interface IEsManager<T extends EsEntity> {
 	 * @param beanClass
 	 * @return
 	 */
-	boolean delete(String indexName, String unid, String type);
+	boolean delete(String unid);
 
 	/**
 	 * 获取单个对象
@@ -41,7 +40,7 @@ public interface IEsManager<T extends EsEntity> {
 	 * @param <T>
 	 * @return
 	 */
-	T get(String unid, String indexName, Class<T> beanClass);
+	T get(String unid);
 
 	/**
 	 * 获取分页列表
@@ -51,6 +50,5 @@ public interface IEsManager<T extends EsEntity> {
 	 * @param <T>
 	 * @return
 	 */
-	Page<T> getList(String indexName, Map<String, Object> map, Class<T> beanClass, int pageNo,
-			int pageSize);
+	Page<T> getList(Map<String, Object> map, int pageNo, int pageSize);
 }
