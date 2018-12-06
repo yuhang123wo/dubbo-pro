@@ -15,6 +15,8 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHits;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -108,16 +110,19 @@ public abstract class EsManagerImpl<T extends EsEntity> implements IEsManager<T>
 
 	@Override
 	public Page<T> getList(Map<String, Object> map, int pageNo, int pageSize) {
-		System.out.println(clazz);
+		// 分页
+		PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
+		// builder构建
 		SearchRequestBuilder builder = client.prepareSearch(getIndexName())
 				.setTypes(clazz.getSimpleName().toLowerCase()).setSearchType(SearchType.DEFAULT);
-		PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
-		PageHelper.startPage(pageNo, pageSize);
-		SearchResponse response = builder.setFrom(pageNo * pageSize).setSize(pageSize)
+		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+		// 分页查询
+		SearchResponse response = builder.setQuery(boolQueryBuilder).setFrom(pageNo * pageSize).setSize(pageSize)
 				.setExplain(false).execute().actionGet(new TimeValue(1, TimeUnit.MINUTES));
 		SearchHits hits = response.getHits();
 		long total = hits.getTotalHits();
 		List<T> list = new ArrayList<>();
+		// 对象转化
 		for (int i = 0; i < hits.getHits().length; i++) {
 			String jsonStr = hits.getHits()[i].getSourceAsString();
 			JSONObject json = JSONObject.parseObject(jsonStr);

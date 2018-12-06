@@ -25,17 +25,7 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 public class EsHandler {
-	/**
-	 * 需要分词字段
-	 */
-	private static List<String> ANALYZED_FIELD = new ArrayList<String>() {
-		private static final long serialVersionUID = -6602792201760384903L;
 
-		{
-			add("userName");
-			add("orderNo");
-		};
-	};
 	/**
 	 * 集群名称cluster.name
 	 */
@@ -48,8 +38,6 @@ public class EsHandler {
 	 * 端口号
 	 */
 	private static final int ES_TCP_PORT = 9300;
-
-	// private static final Map<String, String> MAPPINGS = new HashMap<>();
 
 	static Settings settings = Settings.builder().put("cluster.name", "elasticsearch").build();
 	// 创建ES客户端
@@ -133,18 +121,10 @@ public class EsHandler {
 					continue;
 				}
 				String name = field.getName();
-				// if (ANALYZED_FIELD.contains(name)) {
-				// mapping.startObject(name)
-				// .field("type",
-				// getElasticSearchMappingType(field.getType().getSimpleName()
-				// .toLowerCase())).field("analyzer", "ik_max_word")
-				// .field("search_analyzer", "ik_max_word").endObject();
-				// } else {
 				mapping.startObject(name)
 						.field("type",
 								getElasticSearchMappingType(field.getType().getSimpleName()
 										.toLowerCase())).endObject();
-				// }
 			}
 			mapping.endObject().endObject();
 		} catch (IOException e) {
