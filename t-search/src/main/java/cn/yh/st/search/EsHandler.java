@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.persistence.Transient;
+
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
@@ -23,6 +25,16 @@ import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
+import cn.yh.st.search.annotation.EsAnnotation;
+import cn.yh.st.search.annotation.field.AnalyzedEnum;
+import cn.yh.st.search.annotation.field.EsBoolean;
+import cn.yh.st.search.annotation.field.EsDate;
+import cn.yh.st.search.annotation.field.EsKeywords;
+import cn.yh.st.search.annotation.field.EsNested;
+import cn.yh.st.search.annotation.field.EsNumber;
+import cn.yh.st.search.annotation.field.EsText;
+import cn.yh.st.search.annotation.field.NumberEnum;
 
 public class EsHandler {
 
@@ -116,21 +128,74 @@ public class EsHandler {
 		try {
 			mapping = XContentFactory.jsonBuilder().startObject().startObject("properties");
 			for (Field field : fieldList) {
-				// 修饰符是static的字段不处理
-				if (Modifier.isStatic(field.getModifiers())) {
+				// 修饰符是transient的字段不处理
+				if (field.isAnnotationPresent(Transient.class)) {
 					continue;
 				}
-				String name = field.getName();
-				mapping.startObject(name)
-						.field("type",
-								getElasticSearchMappingType(field.getType().getSimpleName()
-										.toLowerCase())).endObject();
+				setMappingField(mapping, field);
 			}
 			mapping.endObject().endObject();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return mapping;
+	}
+
+	/**
+	 * 
+	 * @param mapping
+	 * @param field
+	 *            void
+	 * @throws IOException
+	 */
+	private static void setMappingField(XContentBuilder mapping, Field field) throws IOException {
+		String name = field.getName();
+		if (field.isAnnotationPresent(EsBoolean.class)) {
+			mapping.startObject(name).field("type", "boolean").endObject();
+			return;
+		}
+		if (field.isAnnotationPresent(EsKeywords.class)) {
+			mapping.startObject(name).field("type", "keyword").endObject();
+			return;
+		}
+		if (field.isAnnotationPresent(EsNumber.class)) {
+			EsNumber annotation = field.getAnnotation(EsNumber.class);
+			if (annotation.type() == NumberEnum.SCALEDFLOAT) {
+				mapping.startObject(name).field("type", annotation.type().getValue())
+						.field("scaling_factor", "100").endObject();
+			} else {
+				mapping.startObject(name).field("type", annotation.type().getValue()).endObject();
+			}
+			return;
+		}
+		if (field.isAnnotationPresent(EsNested.class)) {
+			mapping.startObject(name).field("type", "nested").endObject();
+			return;
+		}
+		if (field.isAnnotationPresent(EsDate.class)) {
+			EsDate annotation = field.getAnnotation(EsDate.class);
+			mapping.startObject(name).field("type", "date").field("format", annotation.pattern())
+					.endObject();
+			return;
+		}
+		if (field.isAnnotationPresent(EsText.class)) {
+			EsText annotation = field.getAnnotation(EsText.class);
+			if(annotation.type()==AnalyzedEnum.DEFALUT){
+				mapping.startObject(name).field("type", "text").endObject();
+			}
+			if(annotation.type()==AnalyzedEnum.ANALYZED){
+				//TODO 
+				mapping.startObject(name).field("type", "text").endObject();
+			}
+			if(annotation.type()==AnalyzedEnum.NOTANALYZED){
+				mapping.startObject(name).field("type", "text").field("index", "not_analyzed").endObject();
+			}
+			return;
+		}
+		mapping.startObject(name)
+		.field("type",
+				getElasticSearchMappingType(field.getType().getSimpleName()
+						.toLowerCase())).endObject();
 	}
 
 	/**

@@ -8,6 +8,16 @@ package cn.yh.st.search.annotation.field;
  * @desc
  */
 public enum AnalyzedEnum {
-
-	NOTANALYZED, ANALYZED, DEFALUT;
+	/**
+	 * 不分词
+	 */
+	NOTANALYZED,
+	/**
+	 * 分词
+	 */
+	ANALYZED,
+	/**
+	 * 默认
+	 */
+	DEFALUT;
 }
