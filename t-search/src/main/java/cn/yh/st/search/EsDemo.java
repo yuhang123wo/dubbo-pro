@@ -67,7 +67,7 @@ public class EsDemo {
 		UserEsVoService iter = new UserEsVoServiceImpl();
 		// UserEsVo es = new UserEsVo(3, "mingtang", "湖北s", 1, new Date());
 		// System.out.println(iter.save("users", es));
-		// UserEsVo ess = new UserEsVo(3, "mingtang", "湖北ss", 1, new Date());
+		 UserEsVo ess = new UserEsVo(3, "mingtang", "湖北ss", 1, new Date());
 		// System.out.println(iter.update("users", ess));
 		// // System.out.println(iter.delete("users", "2",
 		// // UserEsVo.class.getSimpleName().toLowerCase()));
@@ -82,7 +82,7 @@ public class EsDemo {
 		//
 		// System.out.println(queryStr);
 
-		System.out.println(iter.getList(null, 1, 1).getContent().get(0));
+		System.out.println(iter.getList(ess, 1, 1).getContent().get(0));
 
 		//
 		//

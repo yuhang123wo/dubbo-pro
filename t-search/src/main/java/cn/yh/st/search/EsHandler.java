@@ -209,4 +209,5 @@ public class EsHandler {
 			client.admin().indices().create(request);
 		}
 	}
+
 }

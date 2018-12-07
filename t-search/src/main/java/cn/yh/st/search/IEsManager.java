@@ -1,7 +1,5 @@
 package cn.yh.st.search;
 
-import java.util.Map;
-
 import org.springframework.data.domain.Page;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,5 +48,5 @@ public interface IEsManager<T extends EsEntity> {
 	 * @param <T>
 	 * @return
 	 */
-	Page<T> getList(Map<String, Object> map, int pageNo, int pageSize);
+	Page<T> getList(T t, int pageNo, int pageSize) throws IllegalArgumentException, IllegalAccessException;
 }

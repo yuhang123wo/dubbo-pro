@@ -4,9 +4,12 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import cn.yh.st.search.annotation.EsAnnotation;
+import cn.yh.st.search.annotation.QueryType;
+
 @SuppressWarnings("serial")
 public class EsEntity implements java.io.Serializable {
-
+	@EsAnnotation(searchType = QueryType.IDQUERY)
 	protected long id;
 
 	public long getId() {

@@ -1,6 +1,8 @@
 package cn.yh.st.search;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -23,10 +25,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import cn.yh.st.common.util.ReflectionHelper;
+import cn.yh.st.search.annotation.EsAnnotation;
+import cn.yh.st.search.annotation.QueryType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.github.pagehelper.PageHelper;
 
 public abstract class EsManagerImpl<T extends EsEntity> implements IEsManager<T> {
 
@@ -109,16 +112,18 @@ public abstract class EsManagerImpl<T extends EsEntity> implements IEsManager<T>
 	}
 
 	@Override
-	public Page<T> getList(Map<String, Object> map, int pageNo, int pageSize) {
+	public Page<T> getList(T t, int pageNo, int pageSize) throws IllegalArgumentException,
+			IllegalAccessException {
 		// 分页
 		PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
 		// builder构建
 		SearchRequestBuilder builder = client.prepareSearch(getIndexName())
 				.setTypes(clazz.getSimpleName().toLowerCase()).setSearchType(SearchType.DEFAULT);
-		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+		BoolQueryBuilder boolQueryBuilder = createBoolQueryBuilder(t);
 		// 分页查询
-		SearchResponse response = builder.setQuery(boolQueryBuilder).setFrom(pageNo * pageSize).setSize(pageSize)
-				.setExplain(false).execute().actionGet(new TimeValue(1, TimeUnit.MINUTES));
+		SearchResponse response = builder.setQuery(boolQueryBuilder).setFrom(pageNo * pageSize)
+				.setSize(pageSize).setExplain(false).execute()
+				.actionGet(new TimeValue(1, TimeUnit.MINUTES));
 		SearchHits hits = response.getHits();
 		long total = hits.getTotalHits();
 		List<T> list = new ArrayList<>();
@@ -130,5 +135,47 @@ public abstract class EsManagerImpl<T extends EsEntity> implements IEsManager<T>
 			list.add(bean);
 		}
 		return new PageImpl<>(list, pageRequest, total);
+	}
+
+	public BoolQueryBuilder createBoolQueryBuilder(T t) throws IllegalArgumentException,
+			IllegalAccessException {
+		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+		Field[] fields = t.getClass().getDeclaredFields();
+		List<Field> fieldList = new ArrayList<>();
+		fieldList.addAll(Arrays.asList(fields));
+		Class<?> objClass = t.getClass().getSuperclass();
+		if (null != objClass) {
+			fieldList.addAll(Arrays.asList(objClass.getDeclaredFields()));
+		}
+		for (int i = 0; i < fieldList.size(); i++) {
+			Field field = fieldList.get(i);
+			String value = getFieldValueByFieldName(field.getName(), t);
+			if (null == value || "".equals(value)) {
+				continue;
+			}
+			if (field.isAnnotationPresent(EsAnnotation.class)) {
+				EsAnnotation annotation = field.getAnnotation(EsAnnotation.class);
+				QueryType queryType = annotation.searchType();
+				if (queryType == QueryType.PHRASEQUERY) {
+					boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(field.getName(), value));
+				}
+				if (queryType == QueryType.IDQUERY) {
+					boolQueryBuilder.must(QueryBuilders.idsQuery().addIds(field.getName(), value));
+				}
+			}
+		}
+		return boolQueryBuilder;
+	}
+
+	private String getFieldValueByFieldName(String fieldName, Object object) {
+		try {
+			Field field = object.getClass().getDeclaredField(fieldName);
+			// 设置对象的访问权限，保证对private的属性的访问
+			field.setAccessible(true);
+			return (String) field.get(object);
+		} catch (Exception e) {
+
+			return null;
+		}
 	}
 }
