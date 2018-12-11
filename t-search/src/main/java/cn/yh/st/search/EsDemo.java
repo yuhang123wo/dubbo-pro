@@ -49,9 +49,9 @@ public class EsDemo {
 		ll.add(new QueryAttribute("userName","人民"));
 		q.setLike(ll);
 		
-		System.out.println(service.getList(q, 1, 100).getContent());
+//		System.out.println(service.getList(q, 1, 100).getContent());
 		
-
+//       EsHandler.delIndex("yuhang3");
 	}
 
 	public void test() {

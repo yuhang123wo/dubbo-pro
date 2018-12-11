@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import javax.persistence.Transient;
 
@@ -13,6 +14,7 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.transport.TransportClient;
@@ -270,5 +272,13 @@ public class EsHandler {
 			// 注意此处的actionGet要必须调用，否则在当前调用的时候获取不到新建的index
 			client.admin().indices().create(request).actionGet();
 		}
+	}
+	
+	public static boolean delIndex(String indexName) throws InterruptedException,
+			ExecutionException {
+		AcknowledgedResponse response = client.admin().indices().prepareDelete(indexName).execute()
+				.actionGet();
+		return response.isAcknowledged();
+
 	}
 }
