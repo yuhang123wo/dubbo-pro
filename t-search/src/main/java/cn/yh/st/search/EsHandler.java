@@ -2,7 +2,6 @@ package cn.yh.st.search;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +25,6 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
-import cn.yh.st.search.annotation.EsAnnotation;
 import cn.yh.st.search.annotation.field.AnalyzedEnum;
 import cn.yh.st.search.annotation.field.EsBoolean;
 import cn.yh.st.search.annotation.field.EsDate;
@@ -173,29 +171,27 @@ public class EsHandler {
 			return;
 		}
 		if (field.isAnnotationPresent(EsDate.class)) {
-			EsDate annotation = field.getAnnotation(EsDate.class);
-			mapping.startObject(name).field("type", "date").field("format", annotation.pattern())
-					.endObject();
+			 EsDate annotation = field.getAnnotation(EsDate.class);
+			mapping.startObject(name).field("type", "date").field("format",annotation.pattern()).endObject();
 			return;
 		}
 		if (field.isAnnotationPresent(EsText.class)) {
 			EsText annotation = field.getAnnotation(EsText.class);
-			if(annotation.type()==AnalyzedEnum.DEFALUT){
+			if (annotation.type() == AnalyzedEnum.DEFALUT) {
 				mapping.startObject(name).field("type", "text").endObject();
 			}
-			if(annotation.type()==AnalyzedEnum.ANALYZED){
-				//TODO 
-				mapping.startObject(name).field("type", "text").endObject();
+			if (annotation.type() == AnalyzedEnum.ANALYZED) {
+				mapping.startObject(name).field("type", "text").field("analyzer", "ik_max_word").field("search_analyzer", "ik_max_word").endObject();
 			}
-			if(annotation.type()==AnalyzedEnum.NOTANALYZED){
-				mapping.startObject(name).field("type", "text").field("index", "not_analyzed").endObject();
+			if (annotation.type() == AnalyzedEnum.NOTANALYZED) {
+				mapping.startObject(name).field("type", "text").field("type", "keyword").endObject();
 			}
 			return;
 		}
 		mapping.startObject(name)
-		.field("type",
-				getElasticSearchMappingType(field.getType().getSimpleName()
-						.toLowerCase())).endObject();
+				.field("type",
+						getElasticSearchMappingType(field.getType().getSimpleName().toLowerCase()))
+				.endObject();
 	}
 
 	/**
@@ -271,8 +267,8 @@ public class EsHandler {
 	private static void createIndex(String indexName) {
 		if (!indexExists(indexName)) {
 			CreateIndexRequest request = new CreateIndexRequest(indexName);
-			client.admin().indices().create(request);
+			// 注意此处的actionGet要必须调用，否则在当前调用的时候获取不到新建的index
+			client.admin().indices().create(request).actionGet();
 		}
 	}
-
 }

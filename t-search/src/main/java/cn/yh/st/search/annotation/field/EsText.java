@@ -15,10 +15,6 @@ public @interface EsText {
 
 	AnalyzedEnum type() default AnalyzedEnum.DEFALUT;
 
-	int analyzedMin() default 1;
-
-	int analyzedMAx() default 5;
-
 	/**
 	 * 描述
 	 * 

@@ -13,6 +13,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface EsDate {
 
-	String pattern() default "yyyy-MM-dd HH:mm:ss";
+	String pattern() default "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis";
 
 }

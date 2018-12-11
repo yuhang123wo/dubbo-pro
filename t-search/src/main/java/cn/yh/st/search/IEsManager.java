@@ -48,5 +48,5 @@ public interface IEsManager<T extends EsEntity> {
 	 * @param <T>
 	 * @return
 	 */
-	Page<T> getList(T t, int pageNo, int pageSize) throws IllegalArgumentException, IllegalAccessException;
+	Page<T> getList(QueryInfo queryInfo,int pageNo, int pageSize) throws IllegalArgumentException, IllegalAccessException;
 }

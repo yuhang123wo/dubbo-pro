@@ -5,6 +5,9 @@ import java.util.Date;
 import java.util.List;
 
 import cn.yh.st.search.EsEntity;
+import cn.yh.st.search.annotation.EsAnnotation;
+import cn.yh.st.search.annotation.QueryType;
+import cn.yh.st.search.annotation.field.AnalyzedEnum;
 import cn.yh.st.search.annotation.field.EsDate;
 import cn.yh.st.search.annotation.field.EsNested;
 import cn.yh.st.search.annotation.field.EsNumber;
@@ -20,28 +23,29 @@ public class EsDemoVo extends EsEntity {
 
 	@EsText
 	private String orderNo;
-	
-	@EsText
+
+	@EsText(type = AnalyzedEnum.ANALYZED)
+	@EsAnnotation(searchType = QueryType.PHRASEQUERY)
 	private String userName;
-	
+
 	@EsNumber(type = NumberEnum.INTEGER)
 	private int sex;
-	
+
 	@EsText
 	private String address;
-	
+
 	@EsDate
 	private Date createTime;
-	
+
 	@EsNumber(type = NumberEnum.LONG)
 	private long userId;
-	
+
 	@EsNumber(type = NumberEnum.SCALEDFLOAT)
 	private double price;
-	
+
 	@EsNumber(type = NumberEnum.SCALEDFLOAT)
 	private BigDecimal amount;
-	
+
 	@EsNested
 	private List<NestVo> vo;
 
@@ -115,6 +119,13 @@ public class EsDemoVo extends EsEntity {
 
 	public void setVo(List<NestVo> vo) {
 		this.vo = vo;
+	}
+
+	@Override
+	public String toString() {
+		return "EsDemoVo [orderNo=" + orderNo + ", userName=" + userName + ", sex=" + sex
+				+ ", address=" + address + ", createTime=" + createTime + ", userId=" + userId
+				+ ", price=" + price + ", amount=" + amount + ", vo=" + vo + "]";
 	}
 
 }

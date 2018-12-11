@@ -1,8 +1,6 @@
 package cn.yh.st.search;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -19,14 +17,13 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHits;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import cn.yh.st.common.util.ReflectionHelper;
-import cn.yh.st.search.annotation.EsAnnotation;
-import cn.yh.st.search.annotation.QueryType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -112,18 +109,18 @@ public abstract class EsManagerImpl<T extends EsEntity> implements IEsManager<T>
 	}
 
 	@Override
-	public Page<T> getList(T t, int pageNo, int pageSize) throws IllegalArgumentException,
-			IllegalAccessException {
+	public Page<T> getList(QueryInfo queryInfo, int pageNo, int pageSize)
+			throws IllegalArgumentException, IllegalAccessException {
 		// 分页
 		PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
 		// builder构建
 		SearchRequestBuilder builder = client.prepareSearch(getIndexName())
 				.setTypes(clazz.getSimpleName().toLowerCase()).setSearchType(SearchType.DEFAULT);
-		BoolQueryBuilder boolQueryBuilder = createBoolQueryBuilder(t);
+		BoolQueryBuilder boolQueryBuilder = createBoolQueryBuilder(queryInfo);
 		// 分页查询
-		SearchResponse response = builder.setQuery(boolQueryBuilder).setFrom(pageNo * pageSize)
-				.setSize(pageSize).setExplain(false).execute()
-				.actionGet(new TimeValue(1, TimeUnit.MINUTES));
+		SearchResponse response = builder.setQuery(boolQueryBuilder)
+				.setFrom(pageRequest.getPageNumber() * pageSize).setSize(pageSize)
+				.setExplain(false).execute().actionGet(new TimeValue(1, TimeUnit.MINUTES));
 		SearchHits hits = response.getHits();
 		long total = hits.getTotalHits();
 		List<T> list = new ArrayList<>();
@@ -137,45 +134,42 @@ public abstract class EsManagerImpl<T extends EsEntity> implements IEsManager<T>
 		return new PageImpl<>(list, pageRequest, total);
 	}
 
-	public BoolQueryBuilder createBoolQueryBuilder(T t) throws IllegalArgumentException,
-			IllegalAccessException {
+	/**
+	 * 
+	 * @param queryInfo
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 *             BoolQueryBuilder
+	 */
+	public BoolQueryBuilder createBoolQueryBuilder(QueryInfo queryInfo)
+			throws IllegalArgumentException, IllegalAccessException {
 		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-		Field[] fields = t.getClass().getDeclaredFields();
-		List<Field> fieldList = new ArrayList<>();
-		fieldList.addAll(Arrays.asList(fields));
-		Class<?> objClass = t.getClass().getSuperclass();
-		if (null != objClass) {
-			fieldList.addAll(Arrays.asList(objClass.getDeclaredFields()));
+		List<QueryAttribute> listEquals = queryInfo.getEquals();
+		for (int i = 0; i < listEquals.size(); i++) {
+			QueryAttribute qab = listEquals.get(i);
+			boolQueryBuilder.must(QueryBuilders.matchQuery(qab.getKey(), qab.getValue()));
 		}
-		for (int i = 0; i < fieldList.size(); i++) {
-			Field field = fieldList.get(i);
-			String value = getFieldValueByFieldName(field.getName(), t);
-			if (null == value || "".equals(value)) {
-				continue;
-			}
-			if (field.isAnnotationPresent(EsAnnotation.class)) {
-				EsAnnotation annotation = field.getAnnotation(EsAnnotation.class);
-				QueryType queryType = annotation.searchType();
-				if (queryType == QueryType.PHRASEQUERY) {
-					boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(field.getName(), value));
-				}
-				if (queryType == QueryType.IDQUERY) {
-					boolQueryBuilder.must(QueryBuilders.idsQuery().addIds(field.getName(), value));
-				}
-			}
+		List<QueryAttribute> listLike = queryInfo.getLike();
+		for (int i = 0; i < listLike.size(); i++) {
+			QueryAttribute qab = listLike.get(i);
+			boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(qab.getKey(), qab.getValue()));
+		}
+		List<QueryAttribute> listGe = queryInfo.getGe();
+		for (int i = 0; i < listGe.size(); i++) {
+			QueryAttribute qab = listGe.get(i);
+			RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery(qab.getKey()).gte(
+					qab.getValue());
+			boolQueryBuilder.must(rangeQuery);
+		}
+		List<QueryAttribute> listLe = queryInfo.getLe();
+		for (int i = 0; i < listLe.size(); i++) {
+			QueryAttribute qab = listLe.get(i);
+			RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery(qab.getKey()).lte(
+					qab.getValue());
+			boolQueryBuilder.must(rangeQuery);
 		}
 		return boolQueryBuilder;
 	}
 
-	private String getFieldValueByFieldName(String fieldName, Object object) {
-		try {
-			Field field = object.getClass().getDeclaredField(fieldName);
-			// 设置对象的访问权限，保证对private的属性的访问
-			field.setAccessible(true);
-			return (String) field.get(object);
-		} catch (Exception e) {
-
-			return null;
-		}
-	}
 }
