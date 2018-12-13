@@ -23,6 +23,16 @@
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
+			<!-- 使用场景：当父依赖是公司内部依赖时（PS：不是spring-boot-starter-parent），需要 这样做。 -->
+			<!-- Spring Boot 依赖 -->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>2.0.3.RELEASE</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- Spring Cloud 依赖 -->
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
@@ -30,17 +40,8 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			<dependency>
-				<!-- Import dependency management from Spring Boot -->
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring-boot.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -58,5 +59,12 @@
 	<modules>
 		<module>cloud-eureka-server</module>
 		<module>cloud-eureka-client</module>
+		<module>cloud-service-ribbon</module>
+		<module>cloud-serice-feign</module>
+		<module>cloud-service-zuul</module>
+		<module>cloud-config-server</module>
+		<module>cloud-config-client</module>
+		<module>cloud-service-hi</module>
+		<module>cloud-service-miya</module>
 	</modules>
 </project>
