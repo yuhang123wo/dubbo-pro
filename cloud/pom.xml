@@ -66,5 +66,6 @@
 		<module>cloud-config-client</module>
 		<module>cloud-service-hi</module>
 		<module>cloud-service-miya</module>
+		<module>cloud-serverice-hi-hystrix</module>
 	</modules>
 </project>
