@@ -1,5 +1,7 @@
 package cn.yh.st.dubbo.service.impl;
 
+import java.sql.PreparedStatement;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -21,7 +23,9 @@ public class AssetCardServiceImpl implements AssetCardService {
 
 	@Override
 	public int confirmMysqlSaveAssetCard(AssetCardModel model) {
-		// TODO Auto-generated method stub
+		
+		
+		PreparedStatement p = null;
 		return 0;
 	}
 

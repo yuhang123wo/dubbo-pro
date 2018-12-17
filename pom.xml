@@ -69,5 +69,6 @@
 		<module>t-manager</module>
 		<module>t-search</module>
 		<module>cloud</module>
+		<module>micro-service</module>
 	</modules>
 </project>
