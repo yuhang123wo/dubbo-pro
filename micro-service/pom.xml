@@ -24,5 +24,6 @@
 	</dependencyManagement>
 	<modules>
 		<module>micro-service-tx</module>
+		<module>micro-db-db</module>
 	</modules>
 </project>
